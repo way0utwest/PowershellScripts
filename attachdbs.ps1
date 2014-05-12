@@ -28,50 +28,78 @@ if ($debug -eq 1)
         }
  }
 
-Write-Host "Checking Files"
+Write-Host "Checking Files in " + $folder
+Write-Host " "
 
+# loop through each  of the file
 foreach ($file in Get-ChildItem $folder)
 {
 #Debug
 if ($debug -eq 1)
     {
-     write-host $file.FullName
-     write-host $file.Extension
-     }
+     write-host $sqlDatabase.name
+    }
 
-if ($file.Extension -eq '.mdf') 
-  {
-    # output file name being checked
-    "File:" + $file.BaseName
 
     # reset the check
     $found = 0
 
-    # loop through each  of the databases
-    foreach($sqlDatabase in $Server.databases) 
+   if ($file.Extension -eq '.mdf' -and $file.PSIsContainer -eq $false) 
+    {
+     # output file name being checked
+     #"File:" + $file.BaseName
+     # loop through each  of the databases
+     foreach($sqlDatabase in $Server.databases) 
         { 
-          # check the file v the database name
-          if ($debug -eq 1)
+         #search the filegroups
+         $sqlfg = $sqlDatabase.FileGroups
+         foreach ($fg in $sqlfg)
+         {
+          foreach ($dbfile in $fg.files | Where-Object {$_.ISPrimaryFile -eq $true} )
            {
-              "Checking " + $file.BaseName + " v " + $sqlDatabase.Name
-            }
+            #get the mdf file name
+            $filebeingchecked = $dbfile.filename
+            #"File being checked: " + $filebeingchecked
+            
+           }
+         }
 
-          if ($file.BaseName -eq $sqlDatabase.name)
-            { 
-             $found = 1
-             $dbsexist = $dbsexist + $file.BaseName + ", "
-            }
+
+
+         # check the file v the database name
+         if ($debug -eq 1)
+          {
+             "Checking " + $file.FullName + " v " + $filebeingchecked
+           }
+           
+         #"Checking file:" + $file.FullName
+         #"Checking db  :" + $filebeingchecked
+         #" "
+          
+
+         if ($file.FullName -eq $filebeingchecked)
+          { 
+           $found = 1
+           $dbsexist = $dbsexist + $file.BaseName + ", "
+          }
 
         }
     if ($found -eq 0)
     {
-        "  **** Database Does Not Exist **** "
         $dbsnotexist = $dbsnotexist + $file.BaseName + ", "
+        "Need to restore database from " + $file.FullName
     }
 
    }
+
 }
-write-host "Databases that exist: " + $dbsexist
-write-host "Databases that don't exist: " + $dbsnotexist
+
+if ($debug -eq 1)
+{
+ write-host "Databases that exist: " + $dbsexist
+ write-host "Databases that don't exist: " + $dbsnotexist
+ write-host " "
+}
+
 write-host " "
 write-host "Done"
