@@ -51,6 +51,10 @@ if ($debug -eq 1)
      # loop through each  of the databases
      foreach($sqlDatabase in $Server.databases) 
         { 
+         # grab an owner here. 
+         $dbholder = $server.Databases[0]
+         $owner = $dbholder.Owner
+
          #search the filegroups
          $sqlfg = $sqlDatabase.FileGroups
          foreach ($fg in $sqlfg)
@@ -87,7 +91,34 @@ if ($debug -eq 1)
     if ($found -eq 0)
     {
         $dbsnotexist = $dbsnotexist + $file.BaseName + ", "
-        "Need to restore database from " + $file.FullName
+        "Need to attach database " + $file.FullName
+
+        # attach the databases
+        $dbfiles = New-Object System.Collections.Specialized.StringCollection
+
+        $dbfiles.Add($file.FullName) | Out-Null
+
+        #get database name
+        $dbname = $file.BaseName
+
+        # get log file, assuming same basename as mdf
+        $logfile = $folder + "\" + $file.BaseName + "_log.ldf"
+        $dbfiles.Add($logfile) | Out-Null
+
+        "Attaching as database (" + $dbname + ") from mdf (" + $file.FullName + ") and ldf (" + $logfile + ")"
+        try
+        {
+            $server.AttachDatabase($dbname, $dbfiles)
+        #end try
+        }
+        catch
+        {
+        Write-Host $_.exception;
+        #end catch
+        }
+        #$Server.AttachDatabase($dbname,$dbfiles, $owner, [Microsoft.SqlServer.Management.Smo.AttachOptions]::None)
+
+    #end of not found
     }
 
    }
