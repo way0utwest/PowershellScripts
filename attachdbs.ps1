@@ -26,6 +26,7 @@ if ($debug -eq 1)
     foreach($sqlDatabase in $Server.databases) 
         { "DB:" + $sqlDatabase.name
         }
+ #end debug
  }
 
 Write-Host "Checking Files in " + $folder
@@ -37,15 +38,23 @@ foreach ($file in Get-ChildItem $folder)
 #Debug
 if ($debug -eq 1)
     {
-     write-host $sqlDatabase.name
+     write-host "All Files: " $file.name
+     #end debug
     }
 
 
     # reset the check
     $found = 0
 
-   if ($file.Extension -eq '.mdf' -and $file.PSIsContainer -eq $false) 
+   if ($file.Extension -eq '.mdf') 
     {
+
+     if ($debug -eq 1)
+     {
+      write-host "MDF File: " $file.name
+      #end debug
+     }
+
      # output file name being checked
      #"File:" + $file.BaseName
      # loop through each  of the databases
