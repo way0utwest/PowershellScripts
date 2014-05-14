@@ -130,8 +130,10 @@ if ($debug -eq 1)
     #end of not found
     }
 
+    #end if - check extension
    }
 
+ #end loop through files
 }
 
 if ($debug -eq 1)
