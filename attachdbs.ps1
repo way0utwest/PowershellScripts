@@ -3,8 +3,8 @@ Description: Attach databases from a folder that are not already on the instance
 #>
 
 $folder = 'D:\mssqlserver\MSSQL11.MSSQLSERVER\MSSQL\DATA'
-$instance = 'Tiny'
 $debug = 0
+$instance = 'Tiny'
 $dbsexist = ""
 $dbsnotexist = ""
 
@@ -19,18 +19,18 @@ $dbsnotexist = ""
 [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.SmoEnum") | Out-Null
 
 $server = New-Object ("Microsoft.SqlServer.Management.Smo.Server") $instance
-if ($debug -eq 1)
+if ($debug -eq 2)
  {
     "Database List"
     "-------------"
     foreach($sqlDatabase in $Server.databases) 
-        { "DB:" + $sqlDatabase.name
+        { Write-Output "Debug 2: DB:" $sqlDatabase.name
         }
  #end debug
  }
 
-Write-Host "Checking Files in " + $folder
-Write-Host " "
+Write-Output "Checking Files in " + $folder
+Write-Output " "
 
 # loop through each  of the file
 foreach ($file in Get-ChildItem $folder)
@@ -38,7 +38,7 @@ foreach ($file in Get-ChildItem $folder)
 #Debug
 if ($debug -eq 1)
     {
-     write-host "All Files: " $file.name
+     Write-Output "Debug 1: All Files: " $file.name
      #end debug
     }
 
@@ -51,7 +51,7 @@ if ($debug -eq 1)
 
      if ($debug -eq 1)
      {
-      write-host "MDF File: " $file.name
+      Write-Output "Debug 1: MDF File: " $file.name
       #end debug
      }
 
@@ -72,7 +72,6 @@ if ($debug -eq 1)
            {
             #get the mdf file name
             $filebeingchecked = $dbfile.filename
-            #"File being checked: " + $filebeingchecked
             
            }
          }
@@ -82,25 +81,22 @@ if ($debug -eq 1)
          # check the file v the database name
          if ($debug -eq 1)
           {
-             "Checking " + $file.FullName + " v " + $filebeingchecked
+             "Debug 1: Checking " + $file.FullName + " v " + $filebeingchecked
            }
-           
-         #"Checking file:" + $file.FullName
-         #"Checking db  :" + $filebeingchecked
-         #" "
           
 
          if ($file.FullName -eq $filebeingchecked)
           { 
            $found = 1
            $dbsexist = $dbsexist + $file.BaseName + ", "
+           #end if
           }
 
         }
     if ($found -eq 0)
     {
         $dbsnotexist = $dbsnotexist + $file.BaseName + ", "
-        "Need to attach database " + $file.FullName
+        Write-Output "Need to attach database " + $file.FullName
 
         # attach the databases
         $dbfiles = New-Object System.Collections.Specialized.StringCollection
@@ -114,7 +110,7 @@ if ($debug -eq 1)
         $logfile = $folder + "\" + $file.BaseName + "_log.ldf"
         $dbfiles.Add($logfile) | Out-Null
 
-        "Attaching as database (" + $dbname + ") from mdf (" + $file.FullName + ") and ldf (" + $logfile + ")"
+        Write-output "Attaching as database (" + $dbname + ") from mdf (" + $file.FullName + ") and ldf (" + $logfile + ")"
         try
         {
             $server.AttachDatabase($dbname, $dbfiles)
@@ -122,7 +118,7 @@ if ($debug -eq 1)
         }
         catch
         {
-        Write-Host $_.exception;
+        Write-Output $_.exception;
         #end catch
         }
         #$Server.AttachDatabase($dbname,$dbfiles, $owner, [Microsoft.SqlServer.Management.Smo.AttachOptions]::None)
@@ -138,10 +134,8 @@ if ($debug -eq 1)
 
 if ($debug -eq 1)
 {
- write-host "Databases that exist: " + $dbsexist
- write-host "Databases that don't exist: " + $dbsnotexist
- write-host " "
+ Write-Output "Debug 1: Databases that exist: " + $dbsexist
+ Write-Output "Debug 1: Databases that don't exist: " + $dbsnotexist
 }
 
-write-host " "
-write-host "Done"
+Write-Output "Done"
