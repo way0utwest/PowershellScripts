@@ -2,7 +2,11 @@
 Description: Attach databases from a folder that are not already on the instance.
 #>
 
-$folder = 'D:\mssqlserver\MSSQL11.MSSQLSERVER\MSSQL\DATA'
+# we have MDFS and LDFS as shared folders
+# try to use the Network Path of the shared folder if your mapped drives cannot be found
+# example: $folder = '\\MY-MACHINE\MySharedFolder'
+$mdfFolder = 'D:\MDFS\MDFS'
+$ldfFolder = 'E:\LDFS\LDFS'
 $debug = 0
 $instance = 'Tiny'
 $dbsexist = ""
@@ -29,11 +33,11 @@ if ($debug -eq 2)
  #end debug
  }
 
-Write-Output "Checking Files in " + $folder
+Write-Output "Checking Files in " + $mdfFolder
 Write-Output " "
 
 # loop through each  of the file
-foreach ($file in Get-ChildItem $folder)
+foreach ($file in Get-ChildItem $mdfFolder)
 {
 #Debug
 if ($debug -eq 1)
@@ -107,7 +111,7 @@ if ($debug -eq 1)
         $dbname = $file.BaseName
 
         # get log file, assuming same basename as mdf
-        $logfile = $folder + "\" + $file.BaseName + "_log.ldf"
+        $logfile = $ldfFolder + "\" + $file.BaseName + "_log.ldf"
         $dbfiles.Add($logfile) | Out-Null
 
         Write-output "Attaching as database (" + $dbname + ") from mdf (" + $file.FullName + ") and ldf (" + $logfile + ")"
@@ -118,7 +122,7 @@ if ($debug -eq 1)
         }
         catch
         {
-        Write-Output $_.exception;
+        Write-Output $_.exception|format-list -force;
         #end catch
         }
         #$Server.AttachDatabase($dbname,$dbfiles, $owner, [Microsoft.SqlServer.Management.Smo.AttachOptions]::None)
